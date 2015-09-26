@@ -1,7 +1,8 @@
 library(rstackdeque)
 library(ggplot2)
+library(dplyr)
 
-
+# returns a neural net as a data frame, in long form ;)
 create_nn_df <- function(layer_sizes) {
   nn_df_stack <- rstack()
   
@@ -22,11 +23,22 @@ create_nn_df <- function(layer_sizes) {
       }
     }
   }
+
+  normalize_ys <- function(sub_df) {
+    sub_df$fromy <- sub_df$fromy - mean(sub_df$fromy)
+    sub_df$toy <- sub_df$toy - mean(sub_df$toy)
+    return(sub_df)
+  }
   
-  return(as.data.frame(nn_df_stack))
+  df <- as.data.frame(nn_df_stack)
+  df_normalized <- df %>% group_by(fromx, tox) %>% do(normalize_ys(.))
+  
+  return(df_normalized)
 }
 
-layer_sizes <- c(3, 4, 5, 3)
+
+
+layer_sizes <- c(3, 4, 3, 4, 1)
 nn_df <- create_nn_df(layer_sizes)
 
 
